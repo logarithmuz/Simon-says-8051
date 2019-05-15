@@ -27,7 +27,7 @@ MOV R1, #4d		; initialisiere R1 mit 4 (es sollen 4 verschiedene Muster angezeigt
 s1:
 LCALL zufall		; aus dem Startwert eine Zufallszahl generieren
 MOV A, R0		; lade Zufallszahl in den Akku
-ANL A, #00001111b	; maskiere Akku, um eine zufällige Zahl zwischen 0 und 7 zu erhalten
+ANL A, #00000111b	; maskiere Akku, um eine zufällige Zahl zwischen 0 und 7 zu erhalten
 MOV DPTR, #tabelle	; Datenpointer auf tabelle legen
 MOVC A, @A+DPTR		; hole das entsprechende Bit-Muster aus der Tabelle
 MOV P0, A		; zeige das Bit-Muster auf P0 an
