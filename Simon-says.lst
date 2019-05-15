@@ -3,64 +3,73 @@ Simon-says                                                                      
 0000 020100              2     LJMP init
                          3
                          4     ORG 000Bh
-000B 02012D              5     LJMP isr_timer0
+000B 020137              5     LJMP isr_timer0
                          6
                          7     ORG 0100h
                          8     init:
-0100 7800                9     MOV R0, #0d
-0102 758902             10     MOV TMOD, #00000010b
-0105 758A00             11     MOV TL0, #0d
-0108 758C00             12     MOV TH0, #0d
-010B D288               13     SETB IT0
-010D D28C               14     SETB TR0
-010F 8000               15     SJMP haupt
+0100 7800                9     MOV R0, #0d             ; Startwert für Zufallszahlen mit 0 initialisieren
+0102 758902             10     MOV TMOD, #00000010b    ; Timermodus 8-Bit-Timer mit Autoreload auf Timer0
+0105 758A00             11     MOV TL0, #0d            ; Startwert Timer
+0108 758C00             12     MOV TH0, #0d            ; Nachladewert Timer
+010B D288               13     SETB IT0                ; fallende Taktflanke
+010D D28C               14     SETB TR0                ; starte Timer
+010F 8000               15     SJMP haupt              ; springe zum Hauptprogramm
                         16
                         17     haupt:
-0111 3090FD             18     JNB P1.0, haupt
-0114 C28C               19     CLR TR0
-0116 12011C             20     LCALL anzeigen
-0119 12012C             21     LCALL einlesen
-                        22
-                        23     anzeigen:
-011C 120130             24     LCALL zufall
-011F E8                 25     MOV A, R0
-0120 540F               26     ANL A, #00001111b
-0122 90013D             27     MOV DPTR, #tabelle
-0125 93                 28     MOVC A, @A+DPTR
-0126 F580               29     MOV P0, A
-0128 12012F             30     LCALL warte
-012B 22                 31     RET
-                        32
-                        33     einlesen:
-                        34     ;todo
-012C 22                 35     RET
-                        36
-                        37     isr_timer0:
-012D 08                 38     INC R0
-012E 32                 39     RETI
-                        40
-                        41     warte:
-                        42     ;todo
-012F 22                 43     RET
-                        44
-                        45     zufall:
-0130 E8                 46     mov A, R0   ; initialisiere A mit R0
-0131 7002               47     jnz zub
-0133 F4                 48     cpl A
-0134 F8                 49     mov R0, A
-                        50     zub:
-0135 54B8               51     anl A, #10111000b
-0137 A2D0               52     mov C, P
-0139 E8                 53     mov A, R0
-013A 33                 54     rlc A
-013B F8                 55     mov R0, A
-013C 22                 56     ret
-                        57
-                        58     tabelle:
-013D 0102040810         59     DB 00000001b, 00000010b, 00000100b, 00001000b, 00010000b, 00100000b, 01000000b, 10000000b
+0111 3090FD             18     JNB P1.0, haupt         ; mache nichts, bis Taster P1.0 gedrückt wird
+0114 C28C               19     CLR TR0                 ; stoppe Timer
+0116 120121             20     LCALL anzeigen          ; Muster anzeigen
+0119 120135             21     LCALL einlesen          ; Eingaben des Nutzers einlesen
+011C 120136             22     LCALL ergebnis          ; Eingaben mit tatsächlichem Muster vergleichen und entsprechend Ergebnis dar
+011F 80F0               23     SJMP haupt
+                        24
+                        25     anzeigen:
+0121 7904               26     MOV R1, #4d             ; initialisiere R1 mit 4 (es sollen 4 verschiedene Muster angezeigt werden)
+                        27     s1:
+0123 12013A             28     LCALL zufall            ; aus dem Startwert eine Zufallszahl generieren
+0126 E8                 29     MOV A, R0               ; lade Zufallszahl in den Akku
+0127 540F               30     ANL A, #00001111b       ; maskiere Akku, um eine zufällige Zahl zwischen 0 und 7 zu erhalten
+0129 900147             31     MOV DPTR, #tabelle      ; Datenpointer auf tabelle legen
+012C 93                 32     MOVC A, @A+DPTR         ; hole das entsprechende Bit-Muster aus der Tabelle
+012D F580               33     MOV P0, A               ; zeige das Bit-Muster auf P0 an
+012F 120139             34     LCALL warte             ; warte
+0132 D9EF               35     DJNZ R1, s1             ; springe zu s1, wenn noch nicht 4 Muster angezeigt wurden
+0134 22                 36     RET
+                        37
+                        38     einlesen:
+                        39     ;todo
+0135 22                 40     RET
+                        41
+                        42     ergebnis:
+                        43     ;todo
+0136 22                 44     RET
+                        45
+                        46     isr_timer0:
+0137 08                 47     INC R0                  ; Generierung Startwert für Zufallszahl
+0138 32                 48     RETI
+                        49
+                        50     warte:
+                        51     ;todo
+0139 22                 52     RET
+                        53
+                        54     zufall:
+013A E8                 55     MOV A, R0               ; initialisiere A mit R0
+013B 7002               56     JNZ zub                 ; Startwert darf nicht 0 sein
+013D F4                 57     CPL A                   ; complementiere, falls doch 0
+013E F8                 58     MOV R0, A
+                        59     zub:
+013F 54B8               60     ANL A, #10111000b       ;
+0141 A2D0               61     MOV C, P                ;
+0143 E8                 62     MOV A, R0               ;
+0144 33                 63     RLC A                   ;
+0145 F8                 64     MOV R0, A               ;
+0146 22                 65     RET
+                        66
+                        67     tabelle:
+0147 0102040810         68     DB 00000001b, 00000010b, 00000100b, 00001000b, 00010000b, 00100000b, 01000000b, 10000000b
      204080
-                        60
-                        61     END
+                        69
+                        70     END
 ASSEMBLY COMPLETE, NO ERRORS FOUND, NO WARNINGS
 
 
@@ -75,7 +84,7 @@ ADCLK. . . . . . . . . . . . . . . .  D  ADDR  00F2H  NOT USED
 ADCON. . . . . . . . . . . . . . . .  D  ADDR  00F3H  NOT USED
 ADDH . . . . . . . . . . . . . . . .  D  ADDR  00F5H  NOT USED
 ADDL . . . . . . . . . . . . . . . .  D  ADDR  00F4H  NOT USED
-ANZEIGEN . . . . . . . . . . . . . .  C  ADDR  011CH
+ANZEIGEN . . . . . . . . . . . . . .  C  ADDR  0121H
 AUXR . . . . . . . . . . . . . . . .  D  ADDR  008EH  NOT USED
 AUXR1. . . . . . . . . . . . . . . .  D  ADDR  00A2H  NOT USED
 B. . . . . . . . . . . . . . . . . .  D  ADDR  00F0H  NOT USED
@@ -128,7 +137,8 @@ DPL. . . . . . . . . . . . . . . . .  D  ADDR  0082H  NOT USED
 EA . . . . . . . . . . . . . . . . .  B  ADDR  00AFH  NOT USED
 EC . . . . . . . . . . . . . . . . .  B  ADDR  00AEH  NOT USED
 EECON. . . . . . . . . . . . . . . .  D  ADDR  0096H  NOT USED
-EINLESEN . . . . . . . . . . . . . .  C  ADDR  012CH
+EINLESEN . . . . . . . . . . . . . .  C  ADDR  0135H
+ERGEBNIS . . . . . . . . . . . . . .  C  ADDR  0136H
 ES . . . . . . . . . . . . . . . . .  B  ADDR  00ACH  NOT USED
 ET0. . . . . . . . . . . . . . . . .  B  ADDR  00A9H  NOT USED
 ET1. . . . . . . . . . . . . . . . .  B  ADDR  00ABH  NOT USED
@@ -154,7 +164,7 @@ IPH0 . . . . . . . . . . . . . . . .  D  ADDR  00B7H  NOT USED
 IPH1 . . . . . . . . . . . . . . . .  D  ADDR  00B3H  NOT USED
 IPL0 . . . . . . . . . . . . . . . .  D  ADDR  00B8H  NOT USED
 IPL1 . . . . . . . . . . . . . . . .  D  ADDR  00B2H  NOT USED
-ISR_TIMER0 . . . . . . . . . . . . .  C  ADDR  012DH
+ISR_TIMER0 . . . . . . . . . . . . .  C  ADDR  0137H
 IT0. . . . . . . . . . . . . . . . .  B  ADDR  0088H
 IT1. . . . . . . . . . . . . . . . .  B  ADDR  008AH  NOT USED
 KBE. . . . . . . . . . . . . . . . .  D  ADDR  009DH  NOT USED
@@ -202,6 +212,7 @@ RI . . . . . . . . . . . . . . . . .  B  ADDR  0098H  NOT USED
 RS0. . . . . . . . . . . . . . . . .  B  ADDR  00D3H  NOT USED
 RS1. . . . . . . . . . . . . . . . .  B  ADDR  00D4H  NOT USED
 RXD. . . . . . . . . . . . . . . . .  B  ADDR  00B0H  NOT USED
+S1 . . . . . . . . . . . . . . . . .  C  ADDR  0123H
 SADDR. . . . . . . . . . . . . . . .  D  ADDR  00A9H  NOT USED
 SADDR_0. . . . . . . . . . . . . . .  D  ADDR  00A9H  NOT USED
 SADDR_1. . . . . . . . . . . . . . .  D  ADDR  00AAH  NOT USED
@@ -225,7 +236,7 @@ T0 . . . . . . . . . . . . . . . . .  B  ADDR  00B4H  NOT USED
 T1 . . . . . . . . . . . . . . . . .  B  ADDR  00B5H  NOT USED
 T2CON. . . . . . . . . . . . . . . .  D  ADDR  00C8H  NOT USED
 T2MOD. . . . . . . . . . . . . . . .  D  ADDR  00C9H  NOT USED
-TABELLE. . . . . . . . . . . . . . .  C  ADDR  013DH
+TABELLE. . . . . . . . . . . . . . .  C  ADDR  0147H
 TB8. . . . . . . . . . . . . . . . .  B  ADDR  009BH  NOT USED
 TCLK . . . . . . . . . . . . . . . .  B  ADDR  00CCH  NOT USED
 TCON . . . . . . . . . . . . . . . .  D  ADDR  0088H  NOT USED
@@ -247,10 +258,10 @@ TR0. . . . . . . . . . . . . . . . .  B  ADDR  008CH
 TR1. . . . . . . . . . . . . . . . .  B  ADDR  008EH  NOT USED
 TR2. . . . . . . . . . . . . . . . .  B  ADDR  00CAH  NOT USED
 TXD. . . . . . . . . . . . . . . . .  B  ADDR  00B1H  NOT USED
-WARTE. . . . . . . . . . . . . . . .  C  ADDR  012FH
+WARTE. . . . . . . . . . . . . . . .  C  ADDR  0139H
 WDTCON . . . . . . . . . . . . . . .  D  ADDR  00A7H  NOT USED
 WDTPRG . . . . . . . . . . . . . . .  D  ADDR  00A7H  NOT USED
 WDTRST . . . . . . . . . . . . . . .  D  ADDR  00A6H  NOT USED
 WR . . . . . . . . . . . . . . . . .  B  ADDR  00B6H  NOT USED
-ZUB. . . . . . . . . . . . . . . . .  C  ADDR  0135H
-ZUFALL . . . . . . . . . . . . . . .  C  ADDR  0130H
+ZUB. . . . . . . . . . . . . . . . .  C  ADDR  013FH
+ZUFALL . . . . . . . . . . . . . . .  C  ADDR  013AH
