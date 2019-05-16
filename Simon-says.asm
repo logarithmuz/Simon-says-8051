@@ -1,20 +1,34 @@
 CSEG at 0h
 LJMP init
 
-ORG 000Bh
-LJMP isr_timer0
+ORG 0Bh
+INC R0			; Generierung Startwert für Zufallszahl
+RETI
+
+ORG 01Bh
+DEC R2
+RETI
 
 ORG 0100h
 init:
+MOV P0, #00000000b	; Port0 mit 0 initialisieren
+MOV P1, #00000000b	; Port1 mit 0 initialisieren
 MOV R0, #0d		; Startwert für Zufallszahlen mit 0 initialisieren
-MOV TMOD, #00000010b	; Timermodus 8-Bit-Timer mit Autoreload auf Timer0
+MOV TMOD, #00100010b	; Timermodus 8-Bit-Timer mit Autoreload auf Timer0
 MOV TL0, #0d		; Startwert Timer
 MOV TH0, #0d		; Nachladewert Timer
-SETB IT0		; fallende Taktflanke
+MOV TH1, #0F0h
+MOV TL1, #0F0h
+SETB ET0
+SETB ET1
+SETB EA
+SETB IT0		; fallende Taktflanke Timer0
+SETB IT1		; fallende Taktflanke Timer1
 SETB TR0		; starte Timer
 SJMP haupt		; springe zum Hauptprogramm
 
 haupt:
+setb P1.0
 JNB P1.0, haupt		; mache nichts, bis Taster P1.0 gedrückt wird
 CLR TR0			; stoppe Timer
 LCALL anzeigen		; Muster anzeigen
@@ -47,8 +61,15 @@ isr_timer0:
 INC R0			; Generierung Startwert für Zufallszahl
 RETI
 
+isr_timer1:
+DEC R2
+RETI
+
 warte:
-;todo
+MOV R2, #10d
+SETB TR1
+s2:
+CJNE R2, #0d, s2
 RET
 
 zufall:
@@ -57,7 +78,7 @@ JNZ zub			; Startwert darf nicht 0 sein
 CPL A			; complementiere, falls doch 0
 MOV R0, A
 zub:
-ANL A, #10111000b	; 
+ANL A, #10111000b	;
 MOV C, P		;
 MOV A, R0		;
 RLC A			;
