@@ -3,6 +3,10 @@ AUS EQU P0
 EIN EQU P1
 RNDMSEED EQU 50h
 RNDM EQU 51h
+PATTERN1 EQU 48h
+PATTERN2 EQU 49h
+PATTERN3 EQU 4Ah
+PATTERN4 EQU 4Bh
 LJMP init
 
 ORG 03h
@@ -63,20 +67,55 @@ SETB EX0
 MOV R5, #4d
 e1:
 CJNE R5, #3d, e1
-MOV R0, A
+MOV PATTERN1, A
 e2:
 CJNE R5, #2d, e2
-MOV R1, A
+MOV PATTERN2, A
 e3:
 CJNE R5, #1d, e3
-MOV R2, A
+MOV PATTERN3, A
 e4:
 CJNE R5, #0d, e4
-MOV R3, A
+MOV PATTERN4, A
 RET
 
 ergebnis:
+;todo
+MOV A, RNDMSEED
+MOV RNDM, A
 
+LCALL zufall		; aus dem gespeicherten Startwert die erste Zufallszahl generieren
+MOV A, RNDM		; lade Zufallszahl in den Akku
+ANL A, #00000111b	; maskiere Akku, um eine zufällige Zahl zwischen 0 und 7 zu erhalten
+MOV DPTR, #tabelle	; Datenpointer auf tabelle legen
+MOVC A, @A+DPTR		; hole das entsprechende Bit-Muster aus der Tabelle
+CJNE A, PATTERN1, lose
+
+LCALL zufall		; aus dem gespeicherten Startwert die erste Zufallszahl generieren
+MOV A, RNDM		; lade Zufallszahl in den Akku
+ANL A, #00000111b	; maskiere Akku, um eine zufällige Zahl zwischen 0 und 7 zu erhalten
+MOV DPTR, #tabelle	; Datenpointer auf tabelle legen
+MOVC A, @A+DPTR		; hole das entsprechende Bit-Muster aus der Tabelle
+CJNE A, PATTERN2, lose
+
+LCALL zufall		; aus dem gespeicherten Startwert die erste Zufallszahl generieren
+MOV A, RNDM		; lade Zufallszahl in den Akku
+ANL A, #00000111b	; maskiere Akku, um eine zufällige Zahl zwischen 0 und 7 zu erhalten
+MOV DPTR, #tabelle	; Datenpointer auf tabelle legen
+MOVC A, @A+DPTR		; hole das entsprechende Bit-Muster aus der Tabelle
+CJNE A, PATTERN3, lose
+
+LCALL zufall		; aus dem gespeicherten Startwert die erste Zufallszahl generieren
+MOV A, RNDM		; lade Zufallszahl in den Akku
+ANL A, #00000111b	; maskiere Akku, um eine zufällige Zahl zwischen 0 und 7 zu erhalten
+MOV DPTR, #tabelle	; Datenpointer auf tabelle legen
+MOVC A, @A+DPTR		; hole das entsprechende Bit-Muster aus der Tabelle
+CJNE A, PATTERN4, lose
+
+win:
+;todo
+lose:
+;todo
 RET
 
 isr_ext0:

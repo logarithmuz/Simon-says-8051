@@ -3,5 +3,6 @@
 *.adf~
 *.bin~
 *.hex~
+*.vhc~
 *.mcu8051ide~
 Presentation/~$SimonSagt.pptx
