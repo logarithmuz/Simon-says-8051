@@ -4,5 +4,9 @@
 *.bin~
 *.hex~
 *.vhc~
+*.lst
+*.hex
+*.bin
+*.adf
 *.mcu8051ide~
 Presentation/~$SimonSagt.pptx
