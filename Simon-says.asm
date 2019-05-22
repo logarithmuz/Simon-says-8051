@@ -22,10 +22,6 @@ LJMP init
 ORG 03h
 LJMP isr_ext0
 
-ORG 0Bh
-INC RNDM		; Generierung Startwert für Zufallszahl
-RETI
-
 ORG 01Bh
 DEC R7			; Timer1 für Unterprogramm 'warten'
 RETI
@@ -35,19 +31,12 @@ RETI
 ;-----------------
 ORG 0100h
 init:
-MOV AUS, #11111111b	; Port0 mit 0 initialisieren
-MOV EIN, #00000000b	; Port1 mit 0 initialisieren
+MOV AUS, #0FFh		; Port0 mit 0 initialisieren
+MOV EIN, #0FFh		; Port1 mit 0 initialisieren
 MOV RNDM, #0d		; Startwert für Zufallszahlen mit 0 initialisieren
 
 SETB EA			; globale Interupt-Freigabe
 MOV TMOD, #00100010b	; Timermodus 8-Bit-Timer mit Autoreload auf Timer0 und Timer1
-
-; Timer0
-SETB ET0		; Freigabe Timer0
-MOV TL0, #0FEh		; Startwert Timer0
-MOV TH0, #0FEh		; Nachladewert Timer0
-SETB IT0		; fallende Taktflanke Timer0
-SETB TR0		; starte Timer0
 
 ; Timer1
 SETB ET1		; Freigabe Timer1
@@ -61,8 +50,8 @@ SJMP haupt		; springe zum Hauptprogramm
 ; Hauptprogramm
 ;---------------
 haupt:
-JNB EIN.0, haupt	; mache nichts, bis Taster P1.0 gedrückt wird
-CLR TR0			; stoppe Timer
+INC RNDM		; Generierung Startwert für Zufallszahlengenerator
+JB P1.0, haupt		; mache nichts, bis Taster P1.0 gedrückt wird
 LCALL anzeigen		; Muster anzeigen
 MOV AUS, #11111111b	; LEDs wieder ausschalten
 LCALL einlesen		; Eingaben des Nutzers einlesen
@@ -96,15 +85,19 @@ SETB EX0
 MOV R5, #4d
 e1:
 CJNE R5, #3d, e1	; auf externen Interupt 0 warten
+CPL A			; Muster complementieren
 MOV PATTERN1, A		; Muster aus dem Akku speichern
 e2:
 CJNE R5, #2d, e2	; auf externen Interupt 0 warten
+CPL A			; Muster complementieren
 MOV PATTERN2, A		; Muster aus dem Akku speichern
 e3:
 CJNE R5, #1d, e3	; auf externen Interupt 0 warten
+CPL A			; Muster complementieren
 MOV PATTERN3, A		; Muster aus dem Akku speichern
 e4:
 CJNE R5, #0d, e4	; auf externen Interupt 0 warten
+CPL A			; Muster complementieren
 MOV PATTERN4, A		; Muster aus dem Akku speichern
 RET
 
@@ -165,7 +158,7 @@ DEC R5			; R5 verringern. Indikator für das Unterprogramm 'einlesen', dass ein 
 RETI
 
 ;--------------------------
-; Unterprogramm zum Warten 
+; Unterprogramm zum Warten
 ;--------------------------
 warte:
 MOV R7, #01d
