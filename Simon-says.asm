@@ -1,3 +1,35 @@
+;------------------------------------------------------------------------------
+; Projekt:	Simon-says-8051
+; Vorlesung:	Systemnahe Programmierung
+; Dozent:	Prof. Dr. Ralph Lausen
+; Team:		Hasan Uenalan, Luis Haider, Marcel Huber, Thimo von Rauchhaupt
+;------------------------------------------------------------------------------
+; verwendete Hardware:
+; -LED Panel an P0
+; -Simple Keypad an P1
+;
+; Spielanleitung:
+; 1. Taster an P1.0 betaetigen um das Spiel zu starten
+; 2. Es werden 4 Muster angezeigt, welche man sich merken muss
+; 3. Nachdem alle LEDs wieder aus sind wartet das Spiel auf die Eingaben.
+;    Zum Eingeben des ersten Musters muss der entsprechende Taster auf dem
+;    Keypad betätigt werden und der externe Interupt ausgeloest werden. Das
+;    muss für jedes der vier Muster wiederholt werden.
+; 4. Nach Eingabe der vier Muster ueberprueft das Spiel, ob die eingegebenen
+;    Muster mit den zuvor ausgegebenen Mustern uebereinstimmen. Falls sie
+;    stimmen leuchten die LEDs von P0.4 bis P0.7 (die linken 4 LEDs).
+;    Andernfalls leuchten die uebrigen LEDs (die rechten 4 LEDs).
+; 5. Nachdem das Ergebnis fuer einige Zeit angezeigt wurde startet das Spiel
+;    erneut, bzw. wartet darauf, dass der Spieler P1.0 betätigt.
+;
+; Hinweis:
+; Dieses Programm wurde in der IDE von Moravia Microsystems erstellt und aus-
+; gefuehrt. Die Hardwaresimulation in dieser IDE ist deutlich langsamer als
+; der echte 8051. Wenn dieses Programm auf der Hardware ausgeführt werden soll
+; muss darum das Unterprogramm fuer die Pause angepasst werden.
+;
+;------------------------------------------------------------------------------
+
 ;-----------------------
 ; Konstanten definieren
 ;-----------------------
